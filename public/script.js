@@ -226,27 +226,33 @@ document.addEventListener('click', () => {
 }, { once: true });
 
 // Recording setup with Tone.js
-let mediaRecorder = null;
-let recordedChunks = [];
-const recorder = new Tone.Recorder();
+let recorder = null;
 
 const recordBtn = document.getElementById('recordBtn');
 recordBtn.addEventListener('click', async () => {
-    if (recorder.state === 'started') {
-        await recorder.stop();
-        recordBtn.textContent = 'Start Recording';
+    if (recorder && recorder.state === 'started') {
         const recording = await recorder.stop();
-        const url = URL.createObjectURL(recording);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `instrument_recording_${Date.now()}.webm`;
-        a.click();
-        URL.revokeObjectURL(url);
+        recordBtn.textContent = 'Start Recording';
+        if (recording) {
+            const url = URL.createObjectURL(recording);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `instrument_recording_${Date.now()}.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } else {
+            console.warn('No recording data available');
+        }
+        // Disconnect recorder
+        Object.values(synths).forEach(synth => synth.disconnect(recorder));
+        recorder.dispose();
+        recorder = null;
     } else {
-        await recorder.start();
-        recordBtn.textContent = 'Stop Recording';
+        recorder = new Tone.Recorder();
         // Connect all synths to recorder
         Object.values(synths).forEach(synth => synth.connect(recorder));
+        await recorder.start();
+        recordBtn.textContent = 'Stop Recording';
     }
 });
 
