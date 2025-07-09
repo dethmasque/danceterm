@@ -5,6 +5,17 @@ const outputCanvas = document.getElementById('outputCanvas');
 const hitCounterElement = document.getElementById('hitCounter');
 const ctx = outputCanvas.getContext('2d');
 
+// Set canvas size dynamically based on viewport
+const BASE_WIDTH = 320;
+const BASE_HEIGHT = 240;
+const ASPECT_RATIO = BASE_WIDTH / BASE_HEIGHT;
+const MAX_WIDTH = window.innerWidth * (window.devicePixelRatio || 1);
+const WIDTH = Math.min(BASE_WIDTH, MAX_WIDTH);
+const HEIGHT = Math.round(WIDTH / ASPECT_RATIO);
+outputCanvas.width = WIDTH;
+outputCanvas.height = HEIGHT;
+videoElement.style.objectFit = 'contain'; // Prevent video stretching
+
 // Initialize MediaPipe Pose
 const pose = new Pose({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
@@ -23,12 +34,6 @@ const selfieSegmentation = new SelfieSegmentation({
 selfieSegmentation.setOptions({
     modelSelection: 1 // General segmentation model
 });
-
-// Set canvas size
-const WIDTH = 880; // or dynamically set with window.innerWidth
-outputCanvas.width = WIDTH;
-const HEIGHT = 240;
-outputCanvas.height = HEIGHT;
 
 // Musical instrument emojis and their names
 const instruments = [{
@@ -392,17 +397,13 @@ selfieSegmentation.onResults((results) => {
     }
 });
 
-// Initialize camera
+// Initialize camera with mobile-friendly constraints
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         try {
             if (videoElement.readyState >= 2) { // Check if video has data
-                await pose.send({
-                    image: videoElement
-                });
-                await selfieSegmentation.send({
-                    image: videoElement
-                });
+                await pose.send({ image: videoElement });
+                await selfieSegmentation.send({ image: videoElement });
             } else {
                 console.warn('Video feed not ready, readyState: ' + videoElement.readyState);
             }
@@ -412,7 +413,8 @@ const camera = new Camera(videoElement, {
     },
     width: WIDTH,
     height: HEIGHT,
-    frameRate: 30
+    frameRate: { ideal: 30 },
+    facingMode: 'user' // Use front-facing camera for mobile
 });
 
 // Retry initialization for pose
