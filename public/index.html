@@ -1,0 +1,222 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+
+    <title>Number One Digital Audio Workstation</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/selfie_segmentation.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
+    <style>
+
+<style>
+  /* Background: retro paper texture */
+  body {
+    font-family: 'Permanent Marker', cursive;
+    background-image: url('https://media.istockphoto.com/id/1320330516/photo/padded-envelope-background-texture-or-pattern.jpg?s=612x612&w=0&k=20&c=QL5jX4nAvyrJ6ZW-B0XkmNqFIjojnEjYyhCHGNYJeoU=');
+    background-repeat: repeat;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 40px 20px;
+    color: #333;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Permanent Marker', cursive;
+  }
+
+  /* Canvas with retro border */
+  #outputCanvas {
+    border: 2px solid #333;
+    border-radius: 8px;
+    max-width: 640px;
+    width: 100%;
+    box-shadow: 4px 4px 0 #bbb;
+  }
+
+  /* Hide video feed */
+  #video {
+    display: none;
+  }
+
+  /* Hit counter with "printout" style */
+  #hitCounter {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #fffefb;
+    background-image: url('https://media.istockphoto.com/id/1338398857/photo/manilla-envelope-background-manila-paper-pattern-or-texture.jpg?s=612x612&w=0&k=20&c=77wniIrwUfbR2uCJF28iOJkUkf4wmvgSkWG47ePXTaY=');
+    border: 2px solid #aaa;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 640px;
+    font-family: 'Permanent Marker', cursive;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 4px 4px 0 #ccc;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
+   #audioNote {
+    margin-top: 10px;
+    font-size: 12px;
+    font-family: 'Permanent Marker', cursive;
+    color: #555;
+    font-style: italic;
+  }
+
+  /* Folder-style selector container */
+  .file-card {
+    font-family: 'Permanent Marker', cursive;
+    position: relative;
+    background: #fffefb;
+    background-image: url('https://www.transparenttextures.com/patterns/lined-paper.png');
+    border: 2px solid #aaa;
+    border-radius: 6px;
+    box-shadow: 4px 4px 0 #ccc;
+    padding: 16px 16px 16px 24px;
+    margin: 20px 0;
+    max-width: 640px;
+    width: 100%;
+    overflow: visible;
+  }
+
+  /* Retro-styled instrument selector area */
+  #instrument-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 1em;
+    background: #fafafa;
+    border: 2px dashed #ccc;
+    background-image: url('https://media.istockphoto.com/id/1338398857/photo/manilla-envelope-background-manila-paper-pattern-or-texture.jpg?s=612x612&w=0&k=20&c=77wniIrwUfbR2uCJF28iOJkUkf4wmvgSkWG47ePXTaY=');
+    padding: 12px;
+    border-radius: 6px;
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
+  }
+
+  /* Label and checkbox styling */
+  label {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 14px;
+    background: #fff;
+    background-image: url('https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI1LTAxL3Jhd3BpeGVsb2ZmaWNlM19nZW5lcmF0ZV9hX2RldGFpbGVkX3RleHR1cmVfb2ZfY3J1bXBsZWRfcGFwZXJfd18wNzhmM2NjZC0xNjMyLTQ5OGQtYTI2ZS1hODExMGNiNzU1ZmUtbTVxZWV1amcucG5n.png');
+    padding: 4px 8px;
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    box-shadow: 2px 2px 0 #ccc;
+    cursor: pointer;
+  }
+
+  input[type="checkbox"] {
+    accent-color: #444;
+    transform: scale(1.2);
+    margin-right: 6px;
+  }
+
+  /* Retro-style button */
+  button {
+    font-family: 'Permanent Marker', cursive;
+    font-size: 14px;
+    background: #e0e0e0;
+    background-image: url('https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDI1LTAxL3Jhd3BpeGVsb2ZmaWNlM19nZW5lcmF0ZV9hX2RldGFpbGVkX3RleHR1cmVfb2ZfY3J1bXBsZWRfcGFwZXJfd18wNzhmM2NjZC0xNjMyLTQ5OGQtYTI2ZS1hODExMGNiNzU1ZmUtbTVxZWV1amcucG5n.png');
+    border: 2px solid #999;
+    border-bottom: 4px solid #777;
+    border-right: 4px solid #777;
+    padding: 6px 12px;
+    box-shadow: inset -1px -1px 0 #fff, inset 1px 1px 0 #aaa;
+    cursor: pointer;
+    margin: 8px 4px;
+  }
+
+  button:hover {
+    background: #f0f0f0;
+    background-image: url('https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTExL3Jhd3BpeGVsX29mZmljZV8yMl9hbl9vbGRfcGFzdGVsX3B1cnBsZV9wYXBlcl90aGF0X2lzX3JlYWR5X3RvX19iNjk1NjgwOS0wMzQzLTQxMTAtYjJkYy01M2Q0NjRiZDQ1M2QucG5n.png');
+  }
+
+  /* Paperclip: floating above the file card */
+  .paperclip {
+    position: absolute;
+    top: -28px;
+    left: -16px;
+    width: 32px;
+    height: 32px;
+    background-image: url('https://upload.wikimedia.org/wikipedia/commons/0/04/Farm-Fresh_attach.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    pointer-events: none;
+  }
+</style> 
+
+</head>
+<body>
+    <h1>Number One Digital Audio Workstation</h1>
+    <video id="video" autoplay></video>
+    <div class="file-card">
+        <div class="paperclip"></div>
+        <div id="instrument-selector"></div>
+        <div style="margin-top: 10px;">
+            <label for="speedSlider">Drop Speed:</label>
+            <input type="range" id="speedSlider" min="0.1" max="3" value="1" step="0.1">
+            <span id="speedValue">1.0x</span>
+            <label for="dropRateSlider">Instruments/sec:</label>
+            <input type="range" id="dropRateSlider" min="1" max="30" value="3" step="1">
+            <span id="dropRateValue">3</span>
+            <button id="recordBtn">Start Recording</button>
+        </div>
+    </div>
+
+    <canvas id="outputCanvas"></canvas>
+    <div id="hitCounter"></div>
+    <p id="audioNote">
+        Welcome to the BEST DAW IN THE WORLD! Heck, maybe even the UNIVERSE! Use your hands to hit instruments as they <br>
+        descend over the keyboard. Select only the instruments you want included in the stream, and adjust their drop rate or <br>
+        fall speed to your fancy. Use the "Start Recording" to begin recording your track, and hit "Stop Recording" to end <br>
+        and automatically download your new hit single!
+    </p>
+    <script src="/static/script.js"></script>
+</body>
+</html>
