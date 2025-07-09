@@ -29,7 +29,6 @@ const WIDTH = 880; // or dynamically set with window.innerWidth
 outputCanvas.width = WIDTH;
 const HEIGHT = 240;
 outputCanvas.height = HEIGHT;
-videoElement.style.objectFit = 'contain'; 
 
 // Musical instrument emojis and their names
 const instruments = [{
