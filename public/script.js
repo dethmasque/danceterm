@@ -69,7 +69,7 @@ const instruments = [{
     {
         emoji: '🪗',
         name: 'accordion',
-        synth: 'PolySynth' // Tone.js PolySynth for accordion-like sound
+        synth: 'PolySawSynth' // Tone.js PolySynth for accordion-like sound
     },
     {
         emoji: '🎤',
@@ -158,6 +158,22 @@ instruments.forEach(instrument => {
 					partials: [1, 2, 1],
 				},
 			}).toDestination(); 
+            break;
+        case 'PolySawSynth':
+            synth = new Tone.PolySynth(Tone.Synth, {
+				oscillator: {
+					type: "fatsawtooth",
+					count: 3,
+					spread: 30,
+				},
+				envelope: {
+					attack: 0.01,
+					decay: 0.1,
+					sustain: 0.5,
+					release: 0.4,
+					attackCurve: "exponential",
+				},
+			}).toDestination();
             break;
         case 'MembraneSynth':
             synth = new Tone.MembraneSynth({
