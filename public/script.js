@@ -34,52 +34,52 @@ outputCanvas.height = HEIGHT;
 const instruments = [{
         emoji: '🎸',
         name: 'guitar',
-        oscillator: 'sawtooth'
+        synth: 'AMSynth' // Tone.js AMSynth for guitar-like sound
     },
     {
         emoji: '🎹',
         name: 'piano',
-        oscillator: 'square'
+        synth: 'PolySynth' // Tone.js PolySynth for piano
     },
     {
         emoji: '🥁',
         name: 'drums',
-        oscillator: 'sine'
+        synth: 'MembraneSynth' // Tone.js MembraneSynth for drums
     },
     {
         emoji: '🎺',
         name: 'trumpet',
-        oscillator: 'triangle'
+        synth: 'FMSynth' // Tone.js FMSynth for brass-like sound
     },
     {
         emoji: '🎻',
         name: 'violin',
-        oscillator: 'square'
+        synth: 'AMSynth' // Tone.js AMSynth for string-like sound
     },
     {
         emoji: '🎷',
         name: 'saxophone',
-        oscillator: 'sawtooth'
+        synth: 'FMSynth' // Tone.js FMSynth for sax-like sound
     },
     {
         emoji: '🪕',
         name: 'banjo',
-        oscillator: 'sine'
+        synth: 'PluckSynth' // Tone.js PluckSynth for banjo
     },
     {
         emoji: '🪗',
         name: 'accordion',
-        oscillator: 'square'
+        synth: 'PolySynth' // Tone.js PolySynth for accordion-like sound
     },
     {
         emoji: '🎤',
         name: 'microphone',
-        oscillator: 'triangle'
+        synth: 'Synth' // Tone.js Synth for vocal-like sound
     },
     {
         emoji: '🎧',
         name: 'headphones',
-        oscillator: 'triangle'
+        synth: 'Synth' // Tone.js Synth for electronic sound
     }
 ];
 
@@ -107,10 +107,9 @@ function getSelectedInstruments() {
         .map(cb => instruments[cb.dataset.index]);
 }
 
-
 // Falling emojis setup (split into background and foreground)
 const CHAR_HEIGHT = 20;
-const COLUMNS = 88; // piano keys/
+const COLUMNS = 88; // piano keys
 const CHAR_WIDTH = WIDTH / COLUMNS;
 const fgDrops = []; // dynamic interactive emoji stream
 
@@ -130,10 +129,7 @@ const spawnFgDrop = () => {
 
 // Track hits per instrument
 const hitCounts = {};
-for (let {
-        emoji
-    }
-    of instruments) {
+for (let { emoji } of instruments) {
     hitCounts[emoji] = 0;
 }
 
@@ -146,58 +142,72 @@ const updateHitCounter = () => {
 };
 updateHitCounter(); // Initial display
 
-// Web Audio API setup
-const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+// Tone.js setup
+Tone.start(); // Initialize Tone.js context
+const synths = {};
+instruments.forEach(instrument => {
+    let synth;
+    switch (instrument.synth) {
+        case 'AMSynth':
+            synth = new Tone.AMSynth().toDestination();
+            break;
+        case 'PolySynth':
+            synth = new Tone.PolySynth(Tone.Synth).toDestination();
+            break;
+        case 'MembraneSynth':
+            synth = new Tone.MembraneSynth().toDestination();
+            break;
+        case 'FMSynth':
+            synth = new Tone.FMSynth().toDestination();
+            break;
+        case 'PluckSynth':
+            synth = new Tone.PluckSynth().toDestination();
+            break;
+        case 'Synth':
+            synth = new Tone.Synth().toDestination();
+            break;
+    }
+    synths[instrument.name] = synth;
+});
 
-// Resume AudioContext on user interaction
+// Resume Tone.js context on user interaction
 document.addEventListener('click', () => {
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume().then(() => {
-            console.log('AudioContext resumed');
+    if (Tone.context.state === 'suspended') {
+        Tone.start().then(() => {
+            console.log('Tone.js context resumed');
         });
     }
-}, {
-    once: true
-});
+}, { once: true });
 
-let mediaStreamDest = audioCtx.createMediaStreamDestination();
+// Recording setup with Tone.js
 let mediaRecorder = null;
 let recordedChunks = [];
+const recorder = new Tone.Recorder();
 
 const recordBtn = document.getElementById('recordBtn');
-recordBtn.addEventListener('click', () => {
-    if (mediaRecorder && mediaRecorder.state === 'recording') {
-        mediaRecorder.stop();
+recordBtn.addEventListener('click', async () => {
+    if (recorder.state === 'started') {
+        await recorder.stop();
         recordBtn.textContent = 'Start Recording';
+        const recording = await recorder.stop();
+        const url = URL.createObjectURL(recording);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `instrument_recording_${Date.now()}.webm`;
+        a.click();
+        URL.revokeObjectURL(url);
     } else {
-        recordedChunks = [];
-        mediaRecorder = new MediaRecorder(mediaStreamDest.stream);
-        mediaRecorder.ondataavailable = (e) => {
-            if (e.data.size > 0) recordedChunks.push(e.data);
-        };
-        mediaRecorder.onstop = () => {
-            const blob = new Blob(recordedChunks, {
-                type: 'audio/webm'
-            });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `instrument_recording_${Date.now()}.webm`;
-            a.click();
-            URL.revokeObjectURL(url);
-        };
-        mediaRecorder.start();
+        await recorder.start();
         recordBtn.textContent = 'Stop Recording';
+        // Connect all synths to recorder
+        Object.values(synths).forEach(synth => synth.connect(recorder));
     }
 });
 
-
 // Function to play instrument sound with pitch based on x-position
-const playInstrumentSound = (instrumentName, xPos, instrumentOsc) => {
+const playInstrumentSound = (instrumentName, xPos) => {
     try {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
+        const synth = synths[instrumentName];
         const MIDI_START = 21; // A0
         const MIDI_END = 108; // C8
         const TOTAL_KEYS = MIDI_END - MIDI_START + 1; // 88 keys
@@ -206,25 +216,14 @@ const playInstrumentSound = (instrumentName, xPos, instrumentOsc) => {
         const midiNote = MIDI_START + (xPos / (WIDTH - 1)) * (TOTAL_KEYS - 1);
 
         // Convert MIDI note to frequency
-        const frequency = 440 * Math.pow(2, (midiNote - 69) / 12);
+        const frequency = Tone.Midi(midiNote).toFrequency();
 
-        oscillator.type = instrumentOsc
-        oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
-
-        // Envelope for sound
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+        // Trigger attack and release
         if (instrumentName === 'drums') {
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            synth.triggerAttackRelease(frequency, '8n');
         } else {
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            synth.triggerAttackRelease(frequency, '4n');
         }
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        gainNode.connect(mediaStreamDest); // Send to recorder
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + (instrumentName === 'drums' ? 0.1 : 0.3));
     } catch (err) {
         console.error(`Error playing sound for ${instrumentName}: ${err.message}`);
     }
@@ -306,7 +305,6 @@ const renderFrame = () => {
             }
         }
 
-
         // Composite: background → user → foreground
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         ctx.drawImage(bgCanvas, 0, 0);
@@ -358,7 +356,7 @@ pose.onResults((results) => {
                                 logMessage(`Hit ${drop.instrument.name} with ${part}`);
                                 hitCounts[drop.instrument.emoji]++;
                                 updateHitCounter();
-                                playInstrumentSound(drop.instrument.name, drop.x, drop.instrument.oscillator);
+                                playInstrumentSound(drop.instrument.name, drop.x);
                                 drop.y = -CHAR_HEIGHT;
                                 drop.instrument = instruments[Math.floor(Math.random() * instruments.length)];
                                 drop.speed = 1 + Math.random() * 2;
