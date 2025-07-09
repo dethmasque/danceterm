@@ -1,0 +1,12 @@
+{
+    "name": "motion_tracker",
+    "version": "1.0.0",
+    "description": "Motion tracking app with virtual background",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "express": "^4.18.2"
+    }
+}
