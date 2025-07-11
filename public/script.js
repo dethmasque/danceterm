@@ -5,7 +5,6 @@ const outputCanvas = document.getElementById('outputCanvas');
 const hitCounterElement = document.getElementById('hitCounter');
 const ctx = outputCanvas.getContext('2d');
 
-// Initialize MediaPipe Pose
 const pose = new Pose({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/${file}`
 });
@@ -16,7 +15,6 @@ pose.setOptions({
     minTrackingConfidence: 0.5
 });
 
-// Initialize MediaPipe Selfie Segmentation
 const selfieSegmentation = new SelfieSegmentation({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/${file}`
 });
@@ -24,62 +22,61 @@ selfieSegmentation.setOptions({
     modelSelection: 1 // General segmentation model
 });
 
-// Set canvas size
-const WIDTH = 880; // or dynamically set with window.innerWidth
+const WIDTH = 880; // for 88 key piano 
 outputCanvas.width = WIDTH;
 const HEIGHT = 240;
 outputCanvas.height = HEIGHT;
 
-// Musical instrument emojis and their names
+// TODO: custom synths for all emoji instruments (in switch below)
 const instruments = [{
         emoji: '🎸',
         name: 'guitar',
-        synth: 'AMSynth' // Tone.js AMSynth for guitar-like sound
+        synth: 'AMSynth'
     },
     {
         emoji: '🎹',
         name: 'piano',
-        synth: 'PolySynth' // Tone.js PolySynth for piano
+        synth: 'PolySynth'
     },
     {
         emoji: '🥁',
         name: 'drums',
-        synth: 'MembraneSynth' // Tone.js MembraneSynth for drums
+        synth: 'MembraneSynth'
     },
     {
         emoji: '🎺',
         name: 'trumpet',
-        synth: 'FMSynth' // Tone.js FMSynth for brass-like sound
+        synth: 'FMSynth'
     },
     {
         emoji: '🎻',
         name: 'violin',
-        synth: 'AMSynth' // Tone.js AMSynth for string-like sound
+        synth: 'AMSynth'
     },
     {
         emoji: '🎷',
         name: 'saxophone',
-        synth: 'MonoSynth' // Tone.js FMSynth for sax-like sound
+        synth: 'MonoSynth'
     },
     {
         emoji: '🪕',
         name: 'banjo',
-        synth: 'PluckSynth' // Tone.js PluckSynth for banjo
+        synth: 'PluckSynth'
     },
     {
         emoji: '🪗',
         name: 'accordion',
-        synth: 'PolySawSynth' // Tone.js PolySynth for accordion-like sound
+        synth: 'PolySawSynth'
     },
     {
         emoji: '🎤',
         name: 'microphone',
-        synth: 'Synth' // Tone.js Synth for vocal-like sound
+        synth: 'NoiseSynth'
     },
     {
         emoji: '🎧',
         name: 'headphones',
-        synth: 'Synth' // Tone.js Synth for electronic sound
+        synth: 'Synth'
     }
 ];
 
@@ -107,11 +104,10 @@ function getSelectedInstruments() {
         .map(cb => instruments[cb.dataset.index]);
 }
 
-// Falling emojis setup (split into background and foreground)
 const CHAR_HEIGHT = 20;
-const COLUMNS = 88; // piano keys
+const COLUMNS = 88; // to match piano keys
 const CHAR_WIDTH = WIDTH / COLUMNS;
-const fgDrops = []; // dynamic interactive emoji stream
+const fgDrops = []; 
 
 const spawnFgDrop = () => {
     const selected = getSelectedInstruments();
@@ -127,26 +123,25 @@ const spawnFgDrop = () => {
     });
 };
 
-// Track hits per instrument
+// TODO: something better than a hit counter, notes tracker? idk
 const hitCounts = {};
 for (let { emoji } of instruments) {
     hitCounts[emoji] = 0;
 }
 
-// Update hit counter display
 const updateHitCounter = () => {
     const displayText = Object.entries(hitCounts)
         .map(([emoji, count]) => `${emoji}: ${count}`)
         .join(', ');
     hitCounterElement.textContent = displayText;
 };
-updateHitCounter(); // Initial display
+updateHitCounter();
 
-// Tone.js setup
-Tone.start(); // Initialize Tone.js context
+Tone.start(); 
 const synths = {};
 instruments.forEach(instrument => {
     let synth;
+    // TODO: resear
     switch (instrument.synth) {
         case 'AMSynth':
             synth = new Tone.AMSynth().toDestination();
@@ -212,11 +207,16 @@ instruments.forEach(instrument => {
         case 'Synth':
             synth = new Tone.Synth().toDestination();
             break;
+        case 'NoiseSynth':
+            synth = new Tone.Noise({
+				volume: -10,
+				type: "brown",
+			}).toDestination();
+            break;
     }
     synths[instrument.name] = synth;
 });
 
-// Resume Tone.js context on user interaction
 document.addEventListener('click', () => {
     if (Tone.context.state === 'suspended') {
         Tone.start().then(() => {
@@ -225,7 +225,6 @@ document.addEventListener('click', () => {
     }
 }, { once: true });
 
-// Recording setup with Tone.js
 let recorder = null;
 
 const recordBtn = document.getElementById('recordBtn');
@@ -256,21 +255,18 @@ recordBtn.addEventListener('click', async () => {
     }
 });
 
-// Function to play instrument sound with pitch based on x-position
 const playInstrumentSound = (instrumentName, xPos) => {
     try {
         const synth = synths[instrumentName];
         const MIDI_START = 21; // A0
         const MIDI_END = 108; // C8
-        const TOTAL_KEYS = MIDI_END - MIDI_START + 1; // 88 keys
+        const TOTAL_KEYS = MIDI_END - MIDI_START + 1;
 
-        // Map xPos to MIDI note from 21 to 108
+        // map piano x-axis to midi notes from 21 to 108
         const midiNote = MIDI_START + (xPos / (WIDTH - 1)) * (TOTAL_KEYS - 1);
 
-        // Convert MIDI note to frequency
         const frequency = Tone.Midi(midiNote).toFrequency();
 
-        // Trigger attack and release
         if (instrumentName === 'drums') {
             synth.triggerAttackRelease(frequency, '8n');
         } else {
@@ -281,11 +277,9 @@ const playInstrumentSound = (instrumentName, xPos) => {
     }
 };
 
-// Debounce parameters
 const DEBOUNCE_MS = 150;
 let lastUpdateTime = 0;
 
-// Log hit or miss to console
 const logMessage = (message) => {
     const now = Date.now();
     if (now - lastUpdateTime < DEBOUNCE_MS) return;
@@ -293,7 +287,6 @@ const logMessage = (message) => {
     console.log(`${new Date().toLocaleTimeString()}: ${message}`);
 };
 
-// Background and foreground canvases
 const bgCanvas = document.createElement('canvas');
 bgCanvas.width = WIDTH;
 bgCanvas.height = HEIGHT;
@@ -309,11 +302,9 @@ tempCanvas.width = WIDTH;
 tempCanvas.height = HEIGHT;
 const tempCtx = tempCanvas.getContext('2d');
 
-// Render frame with layered compositing
 let segmentationMask = null;
 const renderFrame = () => {
     try {
-        // Draw piano keys
         const whiteKeyWidth = WIDTH / 88;
         const whiteKeyHeight = HEIGHT;
         const blackKeyHeight = HEIGHT * 0.6;
@@ -321,7 +312,6 @@ const renderFrame = () => {
 
         bgCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
-        // Draw white keys
         for (let i = 0; i < 88; i++) {
             bgCtx.fillStyle = 'white';
             bgCtx.fillRect(i * whiteKeyWidth, 0, whiteKeyWidth, whiteKeyHeight);
@@ -329,7 +319,6 @@ const renderFrame = () => {
             bgCtx.strokeRect(i * whiteKeyWidth, 0, whiteKeyWidth, whiteKeyHeight);
         }
 
-        // Draw black keys (skip where black keys don't exist)
         for (let i = 0; i < 88; i++) {
             if (blackKeys.includes(i % 12)) {
                 bgCtx.fillStyle = 'black';
@@ -337,10 +326,8 @@ const renderFrame = () => {
             }
         }
 
-        // Clear canvases
         fgCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
-        // Update and draw interactive drops
         fgCtx.font = `${CHAR_HEIGHT}px sans-serif`;
         for (let i = fgDrops.length - 1; i >= 0; i--) {
             const drop = fgDrops[i];
@@ -348,16 +335,15 @@ const renderFrame = () => {
                 drop.y += drop.speed * speedMultiplier;
                 if (drop.y > HEIGHT) {
                     logMessage(`Missed ${drop.instrument.name}`);
-                    fgDrops.splice(i, 1); // remove it
+                    fgDrops.splice(i, 1);
                     continue;
                 }
                 fgCtx.fillText(drop.instrument.emoji, drop.x, drop.y);
             } else {
-                fgDrops.splice(i, 1); // remove after hit too
+                fgDrops.splice(i, 1);
             }
         }
 
-        // Composite: background → user → foreground
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         ctx.drawImage(bgCanvas, 0, 0);
 
@@ -379,7 +365,6 @@ const renderFrame = () => {
     }
 };
 
-// Process pose results for swat detection
 pose.onResults((results) => {
     try {
         if (results.poseLandmarks) {
@@ -397,7 +382,6 @@ pose.onResults((results) => {
                     const x = landmark.x * WIDTH;
                     const y = landmark.y * HEIGHT;
 
-                    // Check collisions with foreground emojis
                     fgDrops.forEach((drop) => {
                         if (!drop.hit) {
                             if (x >= drop.x &&
@@ -418,8 +402,7 @@ pose.onResults((results) => {
                         }
                     });
                 } else {
-                    console.log("Pose landmarks:", results.poseLandmarks);
-                    // console.warn(`No valid ${part} landmark detected`);
+                    console.warn(`No valid ${part} landmark detected`);
                 }
             });
         } else {
@@ -430,7 +413,6 @@ pose.onResults((results) => {
     }
 });
 
-// Process segmentation results
 selfieSegmentation.onResults((results) => {
     try {
         segmentationMask = results.segmentationMask || null;
@@ -442,11 +424,10 @@ selfieSegmentation.onResults((results) => {
     }
 });
 
-// Initialize camera
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         try {
-            if (videoElement.readyState >= 2) { // Check if video has data
+            if (videoElement.readyState >= 2) {
                 await pose.send({
                     image: videoElement
                 });
@@ -465,7 +446,6 @@ const camera = new Camera(videoElement, {
     frameRate: 30
 });
 
-// Retry initialization for pose
 const initializePoseWithRetry = async (retries = 3, delay = 1000) => {
     for (let i = 0; i < retries; i++) {
         try {
@@ -482,12 +462,10 @@ const initializePoseWithRetry = async (retries = 3, delay = 1000) => {
     console.warn('Pose initialization failed after retries, continuing without pose detection');
 };
 
-// Start the camera
 camera.start().catch((err) => {
     console.error(`Error starting camera: ${err.message}`);
 });
 
-// Initialize pose and segmentation
 Promise.all([
     initializePoseWithRetry(),
     selfieSegmentation.initialize().catch((err) => {
@@ -516,9 +494,8 @@ Promise.all([
         for (let i = 0; i < dropsPerSecond; i++) {
             spawnFgDrop();
         }
-    }, 100); // run every second
+    }, 100);
 
-    // Animation loop
     function animate() {
         renderFrame();
         requestAnimationFrame(animate);
