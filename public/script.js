@@ -71,7 +71,7 @@ const instruments = [{
     {
         emoji: '🎤',
         name: 'microphone',
-        synth: 'NoiseSynth'
+        synth: 'BellSynth'
     },
     {
         emoji: '🎧',
@@ -207,11 +207,16 @@ instruments.forEach(instrument => {
         case 'Synth':
             synth = new Tone.Synth().toDestination();
             break;
-        case 'NoiseSynth':
-            synth = new Tone.Noise({
-				volume: -10,
-				type: "brown",
-			}).toDestination();
+        case 'BellSynth':
+            synth = new Tone.MetalSynth({
+				harmonicity: 12,
+				resonance: 800,
+				modulationIndex: 20,
+				envelope: {
+					decay: 0.4,
+				},
+				volume: -15,
+			}).toDestination(); 
             break;
     }
     synths[instrument.name] = synth;
