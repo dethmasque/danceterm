@@ -1,57 +1,17 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+    <title>Number One Digital Audio Workstation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
-
-    <title>Number One Digital Audio Workstation</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/selfie_segmentation.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
-    <style>
 
 <style>
-  /* Background: retro paper texture */
+  /* low-effort 90s edutainment software style */
   body {
     font-family: 'Permanent Marker', cursive;
     background-image: url('https://media.istockphoto.com/id/1320330516/photo/padded-envelope-background-texture-or-pattern.jpg?s=612x612&w=0&k=20&c=QL5jX4nAvyrJ6ZW-B0XkmNqFIjojnEjYyhCHGNYJeoU=');
@@ -68,7 +28,6 @@
     font-family: 'Permanent Marker', cursive;
   }
 
-  /* Canvas with retro border */
   #outputCanvas {
     border: 2px solid #333;
     border-radius: 8px;
@@ -77,12 +36,10 @@
     box-shadow: 4px 4px 0 #bbb;
   }
 
-  /* Hide video feed */
   #video {
     display: none;
   }
 
-  /* Hit counter with "printout" style */
   #hitCounter {
     margin-top: 20px;
     padding: 10px;
@@ -108,7 +65,6 @@
     font-style: italic;
   }
 
-  /* Folder-style selector container */
   .file-card {
     font-family: 'Permanent Marker', cursive;
     position: relative;
@@ -124,7 +80,6 @@
     overflow: visible;
   }
 
-  /* Retro-styled instrument selector area */
   #instrument-selector {
     display: flex;
     flex-wrap: wrap;
@@ -138,7 +93,6 @@
     box-shadow: inset 0 0 8px rgba(0,0,0,0.05);
   }
 
-  /* Label and checkbox styling */
   label {
     font-family: 'Permanent Marker', cursive;
     font-size: 14px;
@@ -157,7 +111,6 @@
     margin-right: 6px;
   }
 
-  /* Retro-style button */
   button {
     font-family: 'Permanent Marker', cursive;
     font-size: 14px;
@@ -177,7 +130,6 @@
     background-image: url('https://images.rawpixel.com/image_png_800/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTExL3Jhd3BpeGVsX29mZmljZV8yMl9hbl9vbGRfcGFzdGVsX3B1cnBsZV9wYXBlcl90aGF0X2lzX3JlYWR5X3RvX19iNjk1NjgwOS0wMzQzLTQxMTAtYjJkYy01M2Q0NjRiZDQ1M2QucG5n.png');
   }
 
-  /* Paperclip: floating above the file card */
   .paperclip {
     position: absolute;
     top: -28px;
@@ -217,6 +169,6 @@
         fall speed to your fancy. Use the "Start Recording" to begin recording your track, and hit "Stop Recording" to end <br>
         and automatically download your new hit single!
     </p>
-    <script src="/static/script.js"></script>
+    <script src="/public/script.js"></script>
 </body>
 </html>

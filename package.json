@@ -1,7 +1,7 @@
 {
-    "name": "motion_tracker",
+    "name": "n1daw",
     "version": "1.0.0",
-    "description": "Motion tracking app with virtual background",
+    "description": "Number One Digital Audio Workstation",
     "main": "index.html",
     "scripts": {
         "test": "echo \"No tests specified\" && exit 0"

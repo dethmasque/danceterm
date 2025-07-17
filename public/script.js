@@ -19,7 +19,7 @@ const selfieSegmentation = new SelfieSegmentation({
     locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/${file}`
 });
 selfieSegmentation.setOptions({
-    modelSelection: 1 // General segmentation model
+    modelSelection: 1
 });
 
 const WIDTH = 880; // for 88 key piano 
@@ -475,7 +475,7 @@ Promise.all([
     initializePoseWithRetry(),
     selfieSegmentation.initialize().catch((err) => {
         console.error(`Error initializing segmentation: ${err.message}`);
-        return Promise.resolve(); // Continue despite error
+        return Promise.resolve();
     })
 ]).then(() => {
     console.log('Initialization complete, starting animation loop');
