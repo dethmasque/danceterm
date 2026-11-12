@@ -3,6 +3,7 @@ let speedMultiplier = 1.0;
 const videoElement = document.getElementById('video');
 const outputCanvas = document.getElementById('outputCanvas');
 const hitCounterElement = document.getElementById('hitCounter');
+const hitTotalElement = document.getElementById('hitTotal');
 const ctx = outputCanvas.getContext('2d');
 
 const pose = new Pose({
@@ -116,17 +117,36 @@ const spawnFgDrop = () => {
     });
 };
 
-// TODO: something better than a hit counter, notes tracker? idk
-const hitCounts = {};
-for (let { emoji } of instruments) {
-    hitCounts[emoji] = 0;
-}
+const hitCounts = Object.fromEntries(instruments.map(({ emoji }) => [emoji, 0]));
 
 const updateHitCounter = () => {
-    const displayText = Object.entries(hitCounts)
-        .map(([emoji, count]) => `${emoji}: ${count}`)
-        .join(', ');
-    hitCounterElement.textContent = displayText;
+    const total = Object.values(hitCounts).reduce((sum, count) => sum + count, 0);
+    const maxCount = Math.max(1, ...Object.values(hitCounts));
+    hitTotalElement.textContent = String(total);
+
+    const activityRows = instruments.map((instrument) => {
+        const count = hitCounts[instrument.emoji];
+        const row = document.createElement('li');
+        const name = document.createElement('span');
+        const value = document.createElement('span');
+        const meter = document.createElement('span');
+        const fill = document.createElement('span');
+
+        row.className = 'activity-item';
+        name.className = 'activity-name';
+        name.textContent = instrument.name;
+        value.className = 'activity-count';
+        value.textContent = String(count);
+        meter.className = 'activity-meter';
+        meter.setAttribute('aria-hidden', 'true');
+        fill.className = 'activity-meter-fill';
+        fill.style.width = total === 0 ? '0%' : `${(count / maxCount) * 100}%`;
+        meter.appendChild(fill);
+        row.append(name, value, meter);
+        return row;
+    });
+
+    hitCounterElement.replaceChildren(...activityRows);
 };
 updateHitCounter();
 
