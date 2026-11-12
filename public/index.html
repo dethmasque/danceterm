@@ -85,25 +85,40 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .stats-list {
+  .activity-axis,
+  .activity-item {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: minmax(82px, 118px) minmax(0, 1fr) 34px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .activity-axis {
+    padding-bottom: 7px;
+    color: #85847b;
+    font: 9px Arial, sans-serif;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+
+  .activity-axis-scale {
+    grid-column: 2;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .activity-axis-value { text-align: right; }
+
+  .activity-plot {
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
   .activity-item {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 7px 6px;
     min-width: 0;
-    padding: 9px;
-    border: 1px solid #e9e9e4;
-    border-radius: 8px;
-    background: #fff;
+    padding: 8px 0;
+    border-top: 1px solid #e9e9e4;
   }
 
   .activity-name {
@@ -115,31 +130,45 @@
     white-space: nowrap;
   }
 
+  .activity-track {
+    position: relative;
+    display: block;
+    height: 22px;
+    border-right: 1px solid #d8d8d1;
+    border-left: 1px solid #d8d8d1;
+    background-image: linear-gradient(to right, #d8d8d1 1px, transparent 1px);
+    background-size: 25% 100%;
+  }
+
+  .activity-dot {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #74a832;
+    box-shadow: 0 0 0 3px #74a83225;
+    transform: translate(-50%, -50%);
+    transition: left .24s cubic-bezier(.22, 1, .36, 1);
+  }
+
   .activity-count {
     color: #292a24;
     font: 500 13px monospace;
     font-variant-numeric: tabular-nums;
-  }
-
-  .activity-meter {
-    grid-column: 1 / -1;
-    display: block;
-    height: 3px;
-    overflow: hidden;
-    border-radius: 99px;
-    background: #ecece7;
-  }
-
-  .activity-meter-fill {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: #a1d64d;
-    transition: width .2s ease;
+    text-align: right;
   }
 
   @media (max-width: 560px) {
-    .stats-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .activity-axis,
+    .activity-item { grid-template-columns: minmax(72px, 96px) minmax(0, 1fr) 28px; gap: 8px; }
+    .activity-name { font-size: 9px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .activity-dot { transition: none; }
   }
 
    #audioNote {
@@ -252,7 +281,10 @@
             <div class="activity-heading"><h2>Session activity</h2><p>Notes played this session</p></div>
             <div class="activity-total" role="status" aria-live="polite"><span id="hitTotal" class="activity-total-number">0</span><span class="activity-total-label">total hits</span></div>
         </header>
-        <ul id="hitCounter" class="stats-list" aria-label="Notes played by instrument"></ul>
+        <div class="activity-chart">
+            <div class="activity-axis" aria-hidden="true"><span>Instrument</span><div class="activity-axis-scale"><span>0</span><span id="activityScale">5</span></div><span class="activity-axis-value">Hits</span></div>
+            <ul id="hitCounter" class="activity-plot" aria-label="Hit counts by instrument"></ul>
+        </div>
     </section>
     <p id="audioNote">
         Welcome to the BEST DAW IN THE WORLD! Heck, maybe even the UNIVERSE! Use your hands to hit instruments as they <br>
@@ -260,6 +292,6 @@
         fall speed to your fancy. Use the "Start Recording" to begin recording your track, and hit "Stop Recording" to end <br>
         and automatically download your new hit single!
     </p>
-    <script src="/script.js?v=pose-runtime-fix-20261112"></script>
+    <script src="/script.js?v=live-dot-plot-20261112"></script>
 </body>
 </html>

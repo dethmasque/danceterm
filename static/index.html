@@ -20,14 +20,19 @@
     .activity-total{grid-column:1/-1;display:flex;align-items:baseline;gap:8px}
     .activity-total-number{font-size:30px;line-height:1;font-weight:600;letter-spacing:-.06em;color:var(--lime);font-variant-numeric:tabular-nums}
     .activity-total-label{font:10px 'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-    .stats-list{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;min-width:0}
-    .activity-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px 6px;min-width:0;padding:9px 9px 8px;border:1px solid #ffffff10;border-radius:10px;background:#ffffff06}
-    .activity-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bfc1cd;font:9px 'DM Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
-    .activity-count{color:#f4f4f7;font:500 13px 'DM Mono',monospace;font-variant-numeric:tabular-nums}
-    .activity-meter{grid-column:1/-1;display:block;height:3px;overflow:hidden;border-radius:99px;background:#ffffff10}
-    .activity-meter-fill{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--lime),var(--violet));transition:width .2s ease}
+    .activity-axis,.activity-item{display:grid;grid-template-columns:minmax(82px,118px) minmax(0,1fr) 34px;gap:12px;align-items:center}
+    .activity-axis{padding:0 0 7px;color:var(--muted);font:9px 'DM Mono',monospace;letter-spacing:.1em;text-transform:uppercase}
+    .activity-axis-scale{grid-column:2;display:flex;justify-content:space-between;align-items:center}
+    .activity-axis-value{text-align:right}
+    .activity-plot{list-style:none;padding:0;margin:0;min-width:0}
+    .activity-item{min-width:0;padding:8px 0;border-top:1px solid #ffffff10}
+    .activity-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bfc1cd;font:10px 'DM Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+    .activity-track{position:relative;display:block;height:22px;background-image:linear-gradient(to right,#ffffff20 1px,transparent 1px);background-size:25% 100%;border-left:1px solid #ffffff25;border-right:1px solid #ffffff25}
+    .activity-dot{position:absolute;top:50%;left:0;width:12px;height:12px;border:2px solid #171923;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px #c8fa6429;transform:translate(-50%,-50%);transition:left .24s cubic-bezier(.22,1,.36,1)}
+    .activity-count{color:#f4f4f7;font:500 13px 'DM Mono',monospace;font-variant-numeric:tabular-nums;text-align:right}
     @media(max-width:860px){.stats-card{grid-template-columns:minmax(0,1fr)}.stats-summary{grid-template-columns:auto minmax(0,1fr)}.activity-total{grid-column:auto;justify-self:end;margin-left:auto}}
-    @media(max-width:560px){.stats-card{grid-template-columns:minmax(0,1fr);align-items:stretch}.stats-summary{grid-template-columns:auto minmax(0,1fr)}.activity-total{grid-column:1/-1;grid-row:auto;justify-self:start;margin-left:0}.stats-list{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;margin:0}.activity-item{padding:10px 11px 9px}}
+    @media(max-width:560px){.stats-card{grid-template-columns:minmax(0,1fr);align-items:stretch}.stats-summary{grid-template-columns:auto minmax(0,1fr)}.activity-total{grid-column:1/-1;grid-row:auto;justify-self:start;margin-left:0}.activity-axis,.activity-item{grid-template-columns:minmax(72px,96px) minmax(0,1fr) 28px;gap:8px}.activity-name{font-size:9px}}
+    @media(prefers-reduced-motion:reduce){.activity-dot{transition:none}}
   </style>
 </head>
 <body>
@@ -46,12 +51,15 @@
           <div class="stats-overview"><div class="stats-title">Session activity</div><div class="stats-caption">Notes played this session</div></div>
           <div class="activity-total" role="status" aria-live="polite"><span id="hitTotal" class="activity-total-number">0</span><span class="activity-total-label">total hits</span></div>
         </div>
-        <ul id="hitCounter" class="stats-list" aria-label="Notes played by instrument"></ul>
+        <div class="activity-chart">
+          <div class="activity-axis" aria-hidden="true"><span>Instrument</span><div class="activity-axis-scale"><span>0</span><span id="activityScale">5</span></div><span class="activity-axis-value">Hits</span></div>
+          <ul id="hitCounter" class="activity-plot" aria-label="Hit counts by instrument"></ul>
+        </div>
       </section>
     </section>
     <footer class="footer"><span>Allow camera access to start tracking. Your camera feed is processed in this browser and is not recorded unless you start a session.</span><span>MOVE FREELY · FIND YOUR RHYTHM</span></footer>
   </main>
-  <script src="/public/script.js?v=pose-runtime-fix-20261112"></script>
+  <script src="/public/script.js?v=live-dot-plot-20261112"></script>
   <script>
     document.querySelectorAll('#instrument-selector label').forEach((label) => label.classList.add('instrument-choice'));
   </script>
