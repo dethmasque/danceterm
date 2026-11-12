@@ -15,13 +15,6 @@ pose.setOptions({
     minTrackingConfidence: 0.5
 });
 
-const selfieSegmentation = new SelfieSegmentation({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1/${file}`
-});
-selfieSegmentation.setOptions({
-    modelSelection: 1
-});
-
 const WIDTH = 880; // for 88 key piano 
 outputCanvas.width = WIDTH;
 const HEIGHT = 240;
@@ -302,12 +295,6 @@ fgCanvas.width = WIDTH;
 fgCanvas.height = HEIGHT;
 const fgCtx = fgCanvas.getContext('2d');
 
-const tempCanvas = document.createElement('canvas');
-tempCanvas.width = WIDTH;
-tempCanvas.height = HEIGHT;
-const tempCtx = tempCanvas.getContext('2d');
-
-let segmentationMask = null;
 const renderFrame = () => {
     try {
         const whiteKeyWidth = WIDTH / 88;
@@ -352,17 +339,7 @@ const renderFrame = () => {
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         ctx.drawImage(bgCanvas, 0, 0);
 
-        if (segmentationMask) {
-            tempCtx.clearRect(0, 0, WIDTH, HEIGHT);
-            tempCtx.drawImage(videoElement, 0, 0, WIDTH, HEIGHT);
-            tempCtx.globalCompositeOperation = 'destination-in';
-            tempCtx.drawImage(segmentationMask, 0, 0, WIDTH, HEIGHT);
-            tempCtx.globalCompositeOperation = 'source-over';
-            ctx.drawImage(tempCanvas, 0, 0);
-        } else {
-            ctx.drawImage(videoElement, 0, 0, WIDTH, HEIGHT);
-            console.warn('No segmentation mask, using fallback video');
-        }
+        ctx.drawImage(videoElement, 0, 0, WIDTH, HEIGHT);
 
         ctx.drawImage(fgCanvas, 0, 0);
     } catch (err) {
@@ -418,25 +395,11 @@ pose.onResults((results) => {
     }
 });
 
-selfieSegmentation.onResults((results) => {
-    try {
-        segmentationMask = results.segmentationMask || null;
-        if (!segmentationMask) {
-            console.warn('No segmentation mask received');
-        }
-    } catch (err) {
-        console.error(`Segmentation processing error: ${err.message}`);
-    }
-});
-
 const camera = new Camera(videoElement, {
     onFrame: async () => {
         try {
             if (videoElement.readyState >= 2) {
                 await pose.send({
-                    image: videoElement
-                });
-                await selfieSegmentation.send({
                     image: videoElement
                 });
             } else {
@@ -471,13 +434,7 @@ camera.start().catch((err) => {
     console.error(`Error starting camera: ${err.message}`);
 });
 
-Promise.all([
-    initializePoseWithRetry(),
-    selfieSegmentation.initialize().catch((err) => {
-        console.error(`Error initializing segmentation: ${err.message}`);
-        return Promise.resolve();
-    })
-]).then(() => {
+initializePoseWithRetry().then(() => {
     console.log('Initialization complete, starting animation loop');
     const speedSlider = document.getElementById('speedSlider');
     const speedValue = document.getElementById('speedValue');
