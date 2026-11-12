@@ -119,37 +119,47 @@ const spawnFgDrop = () => {
 };
 
 const hitCounts = Object.fromEntries(instruments.map(({ emoji }) => [emoji, 0]));
+let activityScale = 20;
+const activityRows = new Map();
+
+instruments.forEach((instrument) => {
+    const row = document.createElement('li');
+    const name = document.createElement('span');
+    const track = document.createElement('span');
+    const dot = document.createElement('span');
+    const value = document.createElement('span');
+
+    row.className = 'activity-item';
+    name.className = 'activity-name';
+    name.textContent = instrument.name;
+    track.className = 'activity-track';
+    track.setAttribute('aria-hidden', 'true');
+    dot.className = 'activity-dot';
+    track.appendChild(dot);
+    value.className = 'activity-count';
+    row.append(name, track, value);
+    hitCounterElement.appendChild(row);
+    activityRows.set(instrument.emoji, { dot, value });
+});
 
 const updateHitCounter = () => {
     const counts = Object.values(hitCounts);
     const total = counts.reduce((sum, count) => sum + count, 0);
-    const scale = Math.max(5, Math.ceil(Math.max(...counts) / 5) * 5);
+    const maxCount = Math.max(...counts);
+
+    if (maxCount > activityScale) {
+        activityScale = Math.ceil(maxCount / 20) * 20;
+    }
+
     hitTotalElement.textContent = String(total);
-    activityScaleElement.textContent = String(scale);
+    activityScaleElement.textContent = String(activityScale);
 
-    const activityRows = instruments.map((instrument) => {
+    instruments.forEach((instrument) => {
         const count = hitCounts[instrument.emoji];
-        const row = document.createElement('li');
-        const name = document.createElement('span');
-        const track = document.createElement('span');
-        const dot = document.createElement('span');
-        const value = document.createElement('span');
-
-        row.className = 'activity-item';
-        name.className = 'activity-name';
-        name.textContent = instrument.name;
-        track.className = 'activity-track';
-        track.setAttribute('aria-hidden', 'true');
-        dot.className = 'activity-dot';
-        dot.style.left = `${(count / scale) * 100}%`;
-        track.appendChild(dot);
-        value.className = 'activity-count';
+        const { dot, value } = activityRows.get(instrument.emoji);
         value.textContent = String(count);
-        row.append(name, track, value);
-        return row;
+        dot.style.left = `${(count / activityScale) * 100}%`;
     });
-
-    hitCounterElement.replaceChildren(...activityRows);
 };
 updateHitCounter();
 
@@ -382,7 +392,6 @@ pose.onResults((results) => {
 
             Object.keys(hands).forEach((part) => {
                 const landmark = hands[part];
-                console.log(`${part} visibility: ${landmark.visibility.toFixed(2)}`);
                 if (landmark && landmark.visibility > 0.2) {
                     const x = landmark.x * WIDTH;
                     const y = landmark.y * HEIGHT;
@@ -406,12 +415,8 @@ pose.onResults((results) => {
                             }
                         }
                     });
-                } else {
-                    console.warn(`No valid ${part} landmark detected`);
                 }
             });
-        } else {
-            console.warn('No pose landmarks detected');
         }
     } catch (err) {
         console.error(`Pose processing error: ${err.message}`);

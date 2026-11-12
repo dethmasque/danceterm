@@ -28,8 +28,8 @@
     .activity-item{min-width:0;padding:8px 0;border-top:1px solid #ffffff10}
     .activity-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#bfc1cd;font:10px 'DM Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
     .activity-track{position:relative;display:block;height:22px;background-image:linear-gradient(to right,#ffffff20 1px,transparent 1px);background-size:25% 100%;border-left:1px solid #ffffff25;border-right:1px solid #ffffff25}
-    .activity-dot{position:absolute;top:50%;left:0;width:12px;height:12px;border:2px solid #171923;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px #c8fa6429;transform:translate(-50%,-50%);transition:left .24s cubic-bezier(.22,1,.36,1)}
-    .activity-count{color:#f4f4f7;font:500 13px 'DM Mono',monospace;font-variant-numeric:tabular-nums;text-align:right}
+.activity-dot{position:absolute;top:50%;left:0;width:11px;height:11px;border:2px solid #171923;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px #c8fa6429;transform:translate(-50%,-50%);transition:none}
+ .activity-count{min-width:34px;padding:3px 6px;border-radius:999px;background:var(--lime);color:#171923;font:700 15px 'DM Mono',monospace;font-variant-numeric:tabular-nums;text-align:center}
     @media(max-width:860px){.stats-card{grid-template-columns:minmax(0,1fr)}.stats-summary{grid-template-columns:auto minmax(0,1fr)}.activity-total{grid-column:auto;justify-self:end;margin-left:auto}}
     @media(max-width:560px){.stats-card{grid-template-columns:minmax(0,1fr);align-items:stretch}.stats-summary{grid-template-columns:auto minmax(0,1fr)}.activity-total{grid-column:1/-1;grid-row:auto;justify-self:start;margin-left:0}.activity-axis,.activity-item{grid-template-columns:minmax(72px,96px) minmax(0,1fr) 28px;gap:8px}.activity-name{font-size:9px}}
     @media(prefers-reduced-motion:reduce){.activity-dot{transition:none}}
@@ -59,7 +59,7 @@
     </section>
     <footer class="footer"><span>Allow camera access to start tracking. Your camera feed is processed in this browser and is not recorded unless you start a session.</span><span>MOVE FREELY · FIND YOUR RHYTHM</span></footer>
   </main>
-  <script src="/public/script.js?v=live-dot-plot-20261112"></script>
+  <script src="/public/script.js?v=live-dot-plot-stable-20261112"></script>
   <script>
     document.querySelectorAll('#instrument-selector label').forEach((label) => label.classList.add('instrument-choice'));
   </script>

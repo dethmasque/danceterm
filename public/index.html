@@ -151,14 +151,18 @@
     background: #74a832;
     box-shadow: 0 0 0 3px #74a83225;
     transform: translate(-50%, -50%);
-    transition: left .24s cubic-bezier(.22, 1, .36, 1);
+    transition: none;
   }
 
   .activity-count {
-    color: #292a24;
-    font: 500 13px monospace;
+    min-width: 34px;
+    padding: 3px 6px;
+    border-radius: 999px;
+    background: #487a21;
+    color: #fff;
+    font: 700 15px monospace;
     font-variant-numeric: tabular-nums;
-    text-align: right;
+    text-align: center;
   }
 
   @media (max-width: 560px) {
@@ -292,6 +296,6 @@
         fall speed to your fancy. Use the "Start Recording" to begin recording your track, and hit "Stop Recording" to end <br>
         and automatically download your new hit single!
     </p>
-    <script src="/script.js?v=live-dot-plot-20261112"></script>
+    <script src="/script.js?v=live-dot-plot-stable-20261112"></script>
 </body>
 </html>
