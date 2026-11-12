@@ -126,7 +126,7 @@ instruments.forEach((instrument) => {
     const row = document.createElement('li');
     const name = document.createElement('span');
     const track = document.createElement('span');
-    const dot = document.createElement('span');
+    const bar = document.createElement('span');
     const value = document.createElement('span');
 
     row.className = 'activity-item';
@@ -134,12 +134,12 @@ instruments.forEach((instrument) => {
     name.textContent = instrument.name;
     track.className = 'activity-track';
     track.setAttribute('aria-hidden', 'true');
-    dot.className = 'activity-dot';
-    track.appendChild(dot);
+  bar.className = 'activity-bar-fill';
+  track.appendChild(bar);
     value.className = 'activity-count';
     row.append(name, track, value);
     hitCounterElement.appendChild(row);
-    activityRows.set(instrument.emoji, { dot, value });
+    activityRows.set(instrument.emoji, { bar, value });
 });
 
 const updateHitCounter = () => {
@@ -156,9 +156,9 @@ const updateHitCounter = () => {
 
     instruments.forEach((instrument) => {
         const count = hitCounts[instrument.emoji];
-        const { dot, value } = activityRows.get(instrument.emoji);
-        value.textContent = String(count);
-        dot.style.left = `${(count / activityScale) * 100}%`;
+    const { bar, value } = activityRows.get(instrument.emoji);
+    value.textContent = String(count);
+    bar.style.width = `${Math.min((count / activityScale) * 100, 100)}%`;
     });
 };
 updateHitCounter();
