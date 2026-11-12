@@ -38,12 +38,11 @@
 <body>
   <main class="shell">
     <header class="topbar">
-      <div class="brand"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6m4-10v14m4-17v20m4-14v8m4-5v2" stroke-linecap="round"/></svg></div><div>MOTION STUDIO<small>N1DAW · MOVE TO MAKE</small></div></div>
-      <div class="live-pill"><i aria-hidden="true"></i> CAMERA-READY STUDIO</div>
+      <div class="brand"><div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6m4-10v14m4-17v20m4-14v8m4-5v2" stroke-linecap="round"/></svg></div><div>MOTION STUDIO</div></div>
     </header>
-    <section class="hero" aria-labelledby="page-title"><div><p class="eyebrow">01 / Motion instrument</p><h1 id="page-title">Make some<br><span>movement.</span></h1></div><p class="hero-copy">Your hands are the instrument. Move through the falling notes to turn motion into sound.</p></section>
+    <section class="hero" aria-labelledby="page-title"><div><h1 id="page-title">Make some<br><span>movement.</span></h1></div><p class="hero-copy">Your hands are the instrument. Move through the falling notes to turn motion into sound.</p></section>
     <section class="studio-grid" aria-label="Motion music studio">
-      <section class="stage-card" aria-label="Live motion stage"><div class="stage-head"><span class="section-label">Live motion stage</span><span class="stage-hint">88-KEY SPATIAL PIANO · MOVE TO PLAY</span></div><div class="stage-wrap"><video id="video" autoplay playsinline></video><canvas id="outputCanvas" aria-label="Live camera view and falling instrument notes"></canvas></div></section>
+      <section class="stage-card" aria-label="Live motion stage"><div class="stage-head"><span class="section-label">Live motion stage</span></div><div class="stage-wrap"><video id="video" autoplay playsinline></video><canvas id="outputCanvas" aria-label="Live camera view and falling instrument notes"></canvas></div></section>
       <aside class="control-card" aria-label="Studio controls"><div class="control-intro"><h2 class="card-title">Shape your session</h2><p class="card-subtitle">Choose your sound and set the pace.</p></div><div><p class="section-label" style="margin:0 0 11px">Your instruments</p><div id="instrument-selector" aria-label="Select instruments"></div></div><div class="controls-block"><div class="control-row"><div class="label-row"><label for="speedSlider">Fall speed</label><span class="value-chip" id="speedValue">1.0x</span></div><input type="range" id="speedSlider" min="0.1" max="3" value="1" step="0.1" aria-label="Fall speed"></div><div class="control-row"><div class="label-row"><label for="dropRateSlider">Note density</label><span class="value-chip"><span id="dropRateValue">3</span> / sec</span></div><input type="range" id="dropRateSlider" min="1" max="30" value="3" step="1" aria-label="Note density"></div></div><button class="record-button" id="recordBtn" type="button">Start recording</button></aside>
       <section class="stats-card" aria-label="Session activity">
         <div class="stats-summary">
@@ -57,9 +56,9 @@
         </div>
       </section>
     </section>
-    <footer class="footer"><span>Allow camera access to start tracking. Your camera feed is processed in this browser and is not recorded unless you start a session.</span><span>MOVE FREELY · FIND YOUR RHYTHM</span></footer>
+    <footer class="footer"><span>Allow camera access to start tracking. Your camera feed is processed in this browser and is not recorded unless you start a session.</span></footer>
   </main>
-  <script src="/public/script.js?v=horizontal-bars-20261112"></script>
+  <script src="/public/script.js?v=clean-ui-20261112"></script>
   <script>
     document.querySelectorAll('#instrument-selector label').forEach((label) => label.classList.add('instrument-choice'));
   </script>
